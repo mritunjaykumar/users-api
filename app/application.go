@@ -34,5 +34,5 @@ func StartApplication() {
 	router.Use(LatencyMiddleware)
 
 	mapUrls()
-	router.Run(":8080")
+	router.Run("0.0.0.0:8080")
 }
