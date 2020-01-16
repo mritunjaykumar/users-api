@@ -38,6 +38,12 @@ func Log(msg string, fields ...zap.Field) {
 	logger.Sync()
 }
 
+// Debug wraps zap "Debug" function
+func Debug(msg string, fields ...zap.Field) {
+	logger.Debug(msg, fields...)
+	logger.Sync()
+}
+
 // Error wraps zap "Error" function
 func Error(msg string, err errors.RestErr, fields ...zap.Field) {
 	fields = append(fields, zap.NamedError("error", err))

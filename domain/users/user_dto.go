@@ -1,8 +1,9 @@
 package users
 
-import "github.com/mritunjaykumar/users-api/util/errors"
-
-import "strings"
+import (
+	"github.com/mritunjaykumar/users-api/util/errors"
+	"strings"
+)
 
 // User struct defines the user domain object
 type User struct {

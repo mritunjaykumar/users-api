@@ -1,27 +1,46 @@
 package app
 
 import (
-	"fmt"
-	"time"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mritunjaykumar/users-api/logger"
+	"github.com/mritunjaykumar/users-api/util/errors"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 var (
-	router = gin.Default()
+	r = gin.New()
 )
 
-// LatencyMiddleware captures api latency
-func LatencyMiddleware(c *gin.Context) {
-	start := time.Now()
+const (
+	utcTimeFormat = "2006-01-02T15:04:05Z0700"
+)
 
-	// Pass on to the next-in-chain
-	c.Next()
+func customLogFormatter(param gin.LogFormatterParams) string {
+	glog := &ginLog{
+		Timestamp:    param.TimeStamp.UTC().Format(utcTimeFormat),
+		Method:       param.Method,
+		Path:         param.Path,
+		Protocol:     param.Request.Proto,
+		Status:       param.StatusCode,
+		Latency:      param.Latency,
+		UserAgent:    param.Request.UserAgent(),
+		ErrorMessage: param.ErrorMessage,
+	}
 
-	elapsed := time.Since(start).Microseconds()
-	logger.Log(fmt.Sprintf("Elapsed time in micro seconds: [%d]", elapsed))
+	bSlice, err := json.Marshal(glog)
+
+	if err != nil {
+		logger.Error("customLogFormatter failed.",
+			errors.RestErr{
+				Message: "customLogFormatter failed.",
+				Status:  500,
+				Err:     err.Error(),
+			})
+	}
+
+	return string(bSlice) + "\n"
 }
 
 // StartApplication starts the application
@@ -29,10 +48,11 @@ func StartApplication() {
 	logger.Log("Starting application...")
 
 	p := ginprometheus.NewPrometheus("gin")
-	p.Use(router)
+	p.Use(r)
 
-	router.Use(LatencyMiddleware)
+	r.Use(gin.LoggerWithFormatter(customLogFormatter))
+	r.Use(gin.Recovery())
 
 	mapUrls()
-	router.Run("0.0.0.0:8080")
+	r.Run(":8080")
 }
