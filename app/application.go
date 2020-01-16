@@ -2,6 +2,8 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mritunjaykumar/users-api/logger"
@@ -14,7 +16,8 @@ var (
 )
 
 const (
-	utcTimeFormat = "2006-01-02T15:04:05Z0700"
+	utcTimeFormat      = "2006-01-02T15:04:05Z0700"
+	ginMeasurementName = "gin"
 )
 
 func customLogFormatter(param gin.LogFormatterParams) string {
@@ -29,7 +32,17 @@ func customLogFormatter(param gin.LogFormatterParams) string {
 		ErrorMessage: param.ErrorMessage,
 	}
 
-	bSlice, err := json.Marshal(glog)
+	metrics := fmt.Sprintf("%s,timestamp=%s,method=%s,path=%s,protocol=%s,status=%s latency=%d",
+		ginMeasurementName, param.TimeStamp.UTC().Format(utcTimeFormat),
+		param.Method, param.Path, param.Request.Proto, strconv.Itoa(param.StatusCode), param.Latency,
+	)
+
+	// Already logged error if this error out, so not checking for error here
+	logger.WriteMetrics([]byte(metrics))
+
+	var bSlice []byte
+	var err error
+	bSlice, err = json.Marshal(glog)
 
 	if err != nil {
 		logger.Error("customLogFormatter failed.",
