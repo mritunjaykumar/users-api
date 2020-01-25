@@ -32,9 +32,9 @@ func customLogFormatter(param gin.LogFormatterParams) string {
 		ErrorMessage: param.ErrorMessage,
 	}
 
-	metrics := fmt.Sprintf("%s,timestamp=%s,method=%s,path=%s,protocol=%s,status=%s latency=%d",
-		ginMeasurementName, param.TimeStamp.UTC().Format(utcTimeFormat),
-		param.Method, param.Path, param.Request.Proto, strconv.Itoa(param.StatusCode), param.Latency,
+	metrics := fmt.Sprintf("%s,method=%s,path=%s,protocol=%s,status=%s latency=%d %v",
+		ginMeasurementName, param.Method, param.Path, param.Request.Proto,
+		strconv.Itoa(param.StatusCode), param.Latency, param.TimeStamp.UnixNano(),
 	)
 
 	// Already logged error if this error out, so not checking for error here
