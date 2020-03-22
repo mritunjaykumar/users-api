@@ -67,5 +67,5 @@ func StartApplication() {
 	r.Use(gin.Recovery())
 
 	mapUrls()
-	r.Run(":8080")
+	r.Run(":8090")
 }
