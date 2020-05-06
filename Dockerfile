@@ -1,16 +1,17 @@
-FROM golang:1.13-alpine
+#docker build -t dfo-rps .
+#docker run --rm -it --name dfo-rps -p 5000:5000 dfo-rps:latest
+FROM python:3.7.4-buster
+LABEL maintainer="rnesbitt@netapp.com"
 
-# WORKDIR /app
+COPY ./requirements.txt /
+RUN pip3 install -r /requirements.txt
+COPY ./app /app
+COPY ./bootstrap/resource_provider_service/ /usr/local/lib/DFO/rps/resource_provider_service/
+COPY ./build/ /usr/local/lib/DFO/rps/resource_providers/
+#RUN mkdir -p /usr/local/lib/DFO/rps/resource_providers/
 
 
-RUN apk update && apk add --no-cache git
-WORKDIR $GOPATH/src/github.com/mritunjaykumar/users-api
-COPY . .
-
-
-RUN go get -d -v
-RUN go build -o /go/bin/usersapi .
-
-EXPOSE 8080
-# Run the hello binary.
-ENTRYPOINT ["/go/bin/usersapi"]
+EXPOSE 8000/tcp
+ENTRYPOINT uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log
+#CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+#ENTRYPOINT /bin/bash
