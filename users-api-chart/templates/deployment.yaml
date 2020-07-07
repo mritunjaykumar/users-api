@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "users-api-chart.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "users-api-chart.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "users-api-chart.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "users-api-chart.fullname" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    spec:
+      volumes:
+        - name: {{ .Values.sidecar.agent.volumeMounts.name }}
+          configMap:
+            name: {{ .Values.sidecar.agent.volumeMounts.name }}
+      containers:
+#        - name: {{ .Values.sidecar.agent.name }}
+#          image: {{ .Values.sidecar.agent.image }}
+#          volumeMounts:
+#            - name: {{ .Values.sidecar.agent.volumeMounts.name }}
+#              mountPath: {{ .Values.sidecar.agent.volumeMounts.mountPath }}
+#          env:
+#          - name: HOSTNAME
+#            valueFrom:
+#              fieldRef:
+#                fieldPath: spec.nodeName
+                
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+#          livenessProbe:
+#            httpGet:
+#              path: /ping
+#              port: http
+#          readinessProbe:
+#            httpGet:
+#              path: /ping
+#              port: http
+#               resources:
+# {{ toYaml .Values.resources | indent 10 }}

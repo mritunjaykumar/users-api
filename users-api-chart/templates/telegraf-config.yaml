@@ -1,0 +1,36 @@
+apiVersion: v1
+data:
+  telegraf.conf: |+
+    [global_tags]
+      # env = "$ENV"
+    
+      # Influx HTTP write listener
+      [[inputs.influxdb_listener]]
+        ## Address and port to host HTTP listener on
+        service_address = ":8186"
+      
+        ## maximum duration before timing out read of the request
+        read_timeout = "10s"
+        ## maximum duration before timing out write of the response
+        write_timeout = "10s"
+      
+        ## Maximum allowed http request body size in bytes.
+        ## 0 means to use the default of 524,288,000 bytes (500 mebibytes)
+        max_body_size = "500MiB"
+      
+        ## Maximum line size allowed to be sent in bytes.
+        ## 0 means to use the default of 65536 bytes (64 kibibytes)
+        max_line_size = "64KiB"
+    
+    [agent]
+      hostname = "$HOSTNAME"
+    [[outputs.influxdb]]
+      urls = ["{{ .Values.sidecar.agent.config.influxdb.urls }}","http://kapacitor-kapacitor.monitoring.svc.cluster.local:9092"]
+      database = "{{ .Values.sidecar.agent.config.influxdb.database }}"
+      retention_policy = "autogen"
+      write_consistency = "any"
+      timeout = "{{ .Values.sidecar.agent.config.influxdb.timeout }}"
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sidecar.agent.volumeMounts.name }}
+  namespace: {{ .Values.namespace }}

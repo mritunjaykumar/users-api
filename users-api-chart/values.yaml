@@ -1,0 +1,40 @@
+# Default values for users-api-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+namespace: logging
+
+image:
+  repository: mritunjayk/users-api
+#  pullPolicy: Always
+
+nameOverride: "usersapi"
+fullnameOverride: "usersapi"
+
+service:
+  # ClusterIP
+  type: LoadBalancer
+  port: 8090
+
+# resources:
+#   limits:
+#     cpu: 100m
+#     memory: 100Mi
+#   requests:
+#     cpu: 100m
+#     memory: 100Mi
+
+# Values for sidecar containers
+sidecar:
+  agent:
+    name: telegraf
+    image: telegraf:1.13.0-alpine
+    volumeMounts:
+      name: telegraf-config
+      mountPath: /etc/telegraf
+    config:
+      influxdb:
+        urls: http://influxdb-0.influxdb.monitoring.svc.cluster.local:8086
+        database: app_metrics
+        timeout: 5s

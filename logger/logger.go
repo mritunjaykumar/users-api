@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"github.com/mritunjaykumar/users-api/util/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -26,28 +27,46 @@ func init() {
 	zapConfig.EncoderConfig.EncodeTime = utcTimeEncode
 	zapConfig.EncoderConfig.TimeKey = "timestamp"
 
+	// ADD additional custom tags to the logs
+	zapConfig.InitialFields = GetGlobalTags()
+	zapConfig.Sampling = nil
+
 	var err error
 	if logger, err = zapConfig.Build(); err != nil {
 		panic(err)
 	}
 }
 
+// GetGlobalTags provides global tags added to the logs
+func GetGlobalTags() map[string]interface{} {
+	// ADD additional custom tags to the logs
+	globalTags := make(map[string]interface{})
+	globalTags["application"] = "astra"
+
+	tempComponent := os.Args[0] // this might provide value like "/go/bin/usersapi"
+
+	// Get just the app name and not the whole path. For example: out of "/go/bin/usersapi", just get "usersapi"
+	globalTags["component"] = tempComponent[strings.LastIndex(tempComponent, "/")+1:]
+
+	return globalTags
+}
+
 // Log wraps zap "Info" function
-func Log(msg string, fields ...zap.Field) {
-	logger.Info(msg, fields...)
+func Log(message string, fields ...zap.Field) {
+	logger.Info(message, fields...)
 	logger.Sync()
 }
 
 // Debug wraps zap "Debug" function
-func Debug(msg string, fields ...zap.Field) {
-	logger.Debug(msg, fields...)
+func Debug(message string, fields ...zap.Field) {
+	logger.Debug(message, fields...)
 	logger.Sync()
 }
 
 // Error wraps zap "Error" function
-func Error(msg string, err errors.RestErr, fields ...zap.Field) {
+func Error(message string, err error, fields ...zap.Field) {
 	fields = append(fields, zap.NamedError("error", err))
 
-	logger.Error(msg, fields...)
+	logger.Error(message, fields...)
 	logger.Sync()
 }
